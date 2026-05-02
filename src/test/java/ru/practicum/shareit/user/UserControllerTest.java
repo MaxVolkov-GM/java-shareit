@@ -24,7 +24,7 @@ public class UserControllerTest {
 
 	@Test
 	void createUser() throws Exception {
-		UserDto user = new UserDto(null, "Test User", "test@mail.com");
+		UserDto user = new UserDto(null, "Test User", "create-user@mail.com");
 
 		mockMvc.perform(post("/users")
 						.contentType(MediaType.APPLICATION_JSON)
@@ -32,16 +32,17 @@ public class UserControllerTest {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.id").exists())
 				.andExpect(jsonPath("$.name").value("Test User"))
-				.andExpect(jsonPath("$.email").value("test@mail.com"));
+				.andExpect(jsonPath("$.email").value("create-user@mail.com"));
 	}
 
 	@Test
 	void getUser() throws Exception {
-		UserDto user = new UserDto(null, "Test User", "test@mail.com");
+		UserDto user = new UserDto(null, "Test User", "get-user@mail.com");
 
 		String response = mockMvc.perform(post("/users")
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(objectMapper.writeValueAsString(user)))
+				.andExpect(status().isOk())
 				.andReturn()
 				.getResponse()
 				.getContentAsString();
@@ -50,6 +51,7 @@ public class UserControllerTest {
 
 		mockMvc.perform(get("/users/" + created.getId()))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.id").value(created.getId()));
+				.andExpect(jsonPath("$.id").value(created.getId()))
+				.andExpect(jsonPath("$.email").value("get-user@mail.com"));
 	}
 }

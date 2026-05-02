@@ -1,6 +1,6 @@
 package ru.practicum.shareit.user.repository;
 
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 import ru.practicum.shareit.user.User;
 
 import java.util.ArrayList;
@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Repository
+@Component
 public class UserRepository {
 	private final Map<Long, User> users = new HashMap<>();
 	private long idCounter = 1;

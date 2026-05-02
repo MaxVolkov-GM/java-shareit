@@ -73,14 +73,7 @@ public class ItemServiceImpl implements ItemService {
 			return List.of();
 		}
 
-		String query = text.toLowerCase();
-
-		return itemRepository.findAll().stream()
-				.filter(item -> Boolean.TRUE.equals(item.getAvailable()))
-				.filter(item ->
-						item.getName().toLowerCase().contains(query)
-								|| item.getDescription().toLowerCase().contains(query)
-				)
+		return itemRepository.search(text).stream()
 				.map(ItemMapper::toDto)
 				.toList();
 	}

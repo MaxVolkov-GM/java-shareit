@@ -1,6 +1,6 @@
 package ru.practicum.shareit.item.repository;
 
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.ArrayList;
@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Repository
+@Component
 public class ItemRepository {
 	private final Map<Long, Item> items = new HashMap<>();
 	private long idCounter = 1;
@@ -28,5 +28,17 @@ public class ItemRepository {
 
 	public List<Item> findAll() {
 		return new ArrayList<>(items.values());
+	}
+
+	public List<Item> search(String text) {
+		String query = text.toLowerCase();
+
+		return items.values().stream()
+				.filter(item -> Boolean.TRUE.equals(item.getAvailable()))
+				.filter(item ->
+						item.getName().toLowerCase().contains(query)
+								|| item.getDescription().toLowerCase().contains(query)
+				)
+				.toList();
 	}
 }

@@ -1,9 +1,9 @@
 package ru.practicum.shareit.item;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.service.ItemService;
 
 import java.util.List;
@@ -17,33 +17,30 @@ public class ItemController {
 
 	@PostMapping
 	public ItemDto create(@RequestHeader("X-Sharer-User-Id") Long userId,
-	                      @RequestBody ItemDto itemDto) {
-		return ItemMapper.toDto(itemService.create(ItemMapper.toItem(itemDto), userId));
+	                      @Valid @RequestBody ItemDto itemDto) {
+		return itemService.create(itemDto, userId);
 	}
 
 	@PatchMapping("/{itemId}")
-	public ItemDto update(@RequestHeader("X-Sharer-User-Id") Long userId,
-	                      @PathVariable Long itemId,
+	public ItemDto update(@PathVariable Long itemId,
+	                      @RequestHeader("X-Sharer-User-Id") Long userId,
 	                      @RequestBody ItemDto itemDto) {
-		return ItemMapper.toDto(itemService.update(itemId, ItemMapper.toItem(itemDto), userId));
+		return itemService.update(itemId, itemDto, userId);
 	}
 
 	@GetMapping("/{itemId}")
-	public ItemDto getById(@PathVariable Long itemId) {
-		return ItemMapper.toDto(itemService.getById(itemId));
+	public ItemDto getById(@PathVariable Long itemId,
+	                       @RequestHeader("X-Sharer-User-Id") Long userId) {
+		return itemService.getById(itemId, userId);
 	}
 
 	@GetMapping
-	public List<ItemDto> getAllByUser(@RequestHeader("X-Sharer-User-Id") Long userId) {
-		return itemService.getAllByUser(userId).stream()
-				.map(ItemMapper::toDto)
-				.toList();
+	public List<ItemDto> getAll(@RequestHeader("X-Sharer-User-Id") Long userId) {
+		return itemService.getAllByUser(userId);
 	}
 
 	@GetMapping("/search")
 	public List<ItemDto> search(@RequestParam String text) {
-		return itemService.search(text).stream()
-				.map(ItemMapper::toDto)
-				.toList();
+		return itemService.search(text);
 	}
 }

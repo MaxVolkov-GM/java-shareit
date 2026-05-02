@@ -1,50 +1,53 @@
 package ru.practicum.shareit.user.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.mapper.UserMapper;
+import ru.practicum.shareit.user.repository.UserRepository;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-	private final Map<Long, User> users = new HashMap<>();
-	private long idCounter = 1;
+	private final UserRepository userRepository;
 
 	@Override
-	public User create(User user) {
-		validateUser(user);
-		checkEmailUnique(user.getEmail(), null);
-		user.setId(idCounter++);
-		users.put(user.getId(), user);
-		return user;
+	public UserDto create(UserDto userDto) {
+		checkEmailUnique(userDto.getEmail(), null);
+
+		User user = UserMapper.toUser(userDto);
+		return UserMapper.toDto(userRepository.save(user));
 	}
 
 	@Override
-	public User update(Long userId, User user) {
-		User existingUser = getById(userId);
+	public UserDto update(Long userId, UserDto userDto) {
+		User existingUser = getUserById(userId);
 
-		if (user.getName() != null) {
-			existingUser.setName(user.getName());
+		if (userDto.getName() != null) {
+			existingUser.setName(userDto.getName());
 		}
 
-		if (user.getEmail() != null) {
-			validateEmail(user.getEmail());
-			checkEmailUnique(user.getEmail(), userId);
-			existingUser.setEmail(user.getEmail());
+		if (userDto.getEmail() != null) {
+			checkEmailUnique(userDto.getEmail(), userId);
+			existingUser.setEmail(userDto.getEmail());
 		}
 
-		return existingUser;
+		return UserMapper.toDto(userRepository.save(existingUser));
 	}
 
 	@Override
-	public User getById(Long userId) {
-		User user = users.get(userId);
+	public UserDto getById(Long userId) {
+		return UserMapper.toDto(getUserById(userId));
+	}
+
+	@Override
+	public User getUserById(Long userId) {
+		User user = userRepository.findById(userId);
 
 		if (user == null) {
 			throw new NotFoundException("User not found");
@@ -54,31 +57,19 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public List<User> getAll() {
-		return new ArrayList<>(users.values());
+	public List<UserDto> getAll() {
+		return userRepository.findAll().stream()
+				.map(UserMapper::toDto)
+				.toList();
 	}
 
 	@Override
 	public void delete(Long userId) {
-		users.remove(userId);
-	}
-
-	private void validateUser(User user) {
-		if (user.getEmail() == null || user.getEmail().isBlank()) {
-			throw new ValidationException("Email is required");
-		}
-
-		validateEmail(user.getEmail());
-	}
-
-	private void validateEmail(String email) {
-		if (!email.contains("@")) {
-			throw new ValidationException("Email is invalid");
-		}
+		userRepository.delete(userId);
 	}
 
 	private void checkEmailUnique(String email, Long currentUserId) {
-		boolean emailExists = users.values().stream()
+		boolean emailExists = userRepository.findAll().stream()
 				.anyMatch(user -> user.getEmail() != null
 						&& user.getEmail().equals(email)
 						&& !user.getId().equals(currentUserId));

@@ -1,6 +1,7 @@
 package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.NotFoundException;
@@ -18,10 +19,12 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public UserDto create(UserDto userDto) {
-		checkEmailUnique(userDto.getEmail(), null);
-
-		User user = UserMapper.toUser(userDto);
-		return UserMapper.toDto(userRepository.save(user));
+		try {
+			User user = UserMapper.toUser(userDto);
+			return UserMapper.toDto(userRepository.save(user));
+		} catch (DataIntegrityViolationException e) {
+			throw new ConflictException("Email already exists");
+		}
 	}
 
 	@Override
@@ -33,11 +36,14 @@ public class UserServiceImpl implements UserService {
 		}
 
 		if (userDto.getEmail() != null) {
-			checkEmailUnique(userDto.getEmail(), userId);
 			existingUser.setEmail(userDto.getEmail());
 		}
 
-		return UserMapper.toDto(userRepository.save(existingUser));
+		try {
+			return UserMapper.toDto(userRepository.save(existingUser));
+		} catch (DataIntegrityViolationException e) {
+			throw new ConflictException("Email already exists");
+		}
 	}
 
 	@Override
@@ -47,13 +53,8 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public User getUserById(Long userId) {
-		User user = userRepository.findById(userId);
-
-		if (user == null) {
-			throw new NotFoundException("User not found");
-		}
-
-		return user;
+		return userRepository.findById(userId)
+				.orElseThrow(() -> new NotFoundException("User not found"));
 	}
 
 	@Override
@@ -65,17 +66,6 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public void delete(Long userId) {
-		userRepository.delete(userId);
-	}
-
-	private void checkEmailUnique(String email, Long currentUserId) {
-		boolean emailExists = userRepository.findAll().stream()
-				.anyMatch(user -> user.getEmail() != null
-						&& user.getEmail().equals(email)
-						&& !user.getId().equals(currentUserId));
-
-		if (emailExists) {
-			throw new ConflictException("Email already exists");
-		}
+		userRepository.deleteById(userId);
 	}
 }

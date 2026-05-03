@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.BookingState;
 import ru.practicum.shareit.booking.BookingStatus;
@@ -25,6 +26,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
+
 	private final BookingRepository bookingRepository;
 	private final ItemRepository itemRepository;
 	private final UserService userService;
@@ -98,9 +100,33 @@ public class BookingServiceImpl implements BookingService {
 		userService.getUserById(userId);
 
 		PageRequest pageRequest = createPageRequest(from, size);
-		List<Booking> bookings = bookingRepository.findAllByBookerIdOrderByStartDesc(userId, pageRequest);
+		LocalDateTime now = LocalDateTime.now();
 
-		return filterBookings(bookings, state);
+		List<Booking> bookings;
+
+		switch (state) {
+			case CURRENT:
+				bookings = bookingRepository.findCurrentByBookerId(userId, now, pageRequest);
+				break;
+			case PAST:
+				bookings = bookingRepository.findAllByBookerIdAndEndBefore(userId, now, pageRequest);
+				break;
+			case FUTURE:
+				bookings = bookingRepository.findAllByBookerIdAndStartAfter(userId, now, pageRequest);
+				break;
+			case WAITING:
+				bookings = bookingRepository.findAllByBookerIdAndStatus(userId, BookingStatus.WAITING, pageRequest);
+				break;
+			case REJECTED:
+				bookings = bookingRepository.findAllByBookerIdAndStatus(userId, BookingStatus.REJECTED, pageRequest);
+				break;
+			default:
+				bookings = bookingRepository.findAllByBookerId(userId, pageRequest);
+		}
+
+		return bookings.stream()
+				.map(BookingMapper::toDto)
+				.toList();
 	}
 
 	@Override
@@ -108,9 +134,33 @@ public class BookingServiceImpl implements BookingService {
 		userService.getUserById(userId);
 
 		PageRequest pageRequest = createPageRequest(from, size);
-		List<Booking> bookings = bookingRepository.findAllByItemOwnerIdOrderByStartDesc(userId, pageRequest);
+		LocalDateTime now = LocalDateTime.now();
 
-		return filterBookings(bookings, state);
+		List<Booking> bookings;
+
+		switch (state) {
+			case CURRENT:
+				bookings = bookingRepository.findCurrentByOwnerId(userId, now, pageRequest);
+				break;
+			case PAST:
+				bookings = bookingRepository.findAllByItemOwnerIdAndEndBefore(userId, now, pageRequest);
+				break;
+			case FUTURE:
+				bookings = bookingRepository.findAllByItemOwnerIdAndStartAfter(userId, now, pageRequest);
+				break;
+			case WAITING:
+				bookings = bookingRepository.findAllByItemOwnerIdAndStatus(userId, BookingStatus.WAITING, pageRequest);
+				break;
+			case REJECTED:
+				bookings = bookingRepository.findAllByItemOwnerIdAndStatus(userId, BookingStatus.REJECTED, pageRequest);
+				break;
+			default:
+				bookings = bookingRepository.findAllByItemOwnerId(userId, pageRequest);
+		}
+
+		return bookings.stream()
+				.map(BookingMapper::toDto)
+				.toList();
 	}
 
 	private PageRequest createPageRequest(int from, int size) {
@@ -118,31 +168,7 @@ public class BookingServiceImpl implements BookingService {
 			throw new ValidationException("Invalid pagination parameters");
 		}
 
-		return PageRequest.of(from / size, size);
-	}
-
-	private List<BookingDto> filterBookings(List<Booking> bookings, BookingState state) {
-		LocalDateTime now = LocalDateTime.now();
-
-		return bookings.stream()
-				.filter(booking -> {
-					switch (state) {
-						case CURRENT:
-							return booking.getStart().isBefore(now) && booking.getEnd().isAfter(now);
-						case PAST:
-							return booking.getEnd().isBefore(now);
-						case FUTURE:
-							return booking.getStart().isAfter(now);
-						case WAITING:
-							return booking.getStatus() == BookingStatus.WAITING;
-						case REJECTED:
-							return booking.getStatus() == BookingStatus.REJECTED;
-						case ALL:
-						default:
-							return true;
-					}
-				})
-				.map(BookingMapper::toDto)
-				.toList();
+		Sort sort = Sort.by(Sort.Direction.DESC, "start");
+		return PageRequest.of(from / size, size, sort);
 	}
 }

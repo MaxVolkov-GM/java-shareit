@@ -11,6 +11,7 @@ import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.ConflictException;
+import ru.practicum.shareit.exception.ForbiddenException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.model.Item;
@@ -63,7 +64,7 @@ public class BookingServiceImpl implements BookingService {
 				.orElseThrow(() -> new NotFoundException("Booking not found"));
 
 		if (!booking.getItem().getOwner().getId().equals(userId)) {
-			throw new NotFoundException("Only owner can approve booking");
+			throw new ForbiddenException("Only owner can approve booking");
 		}
 
 		if (booking.getStatus() != BookingStatus.WAITING) {

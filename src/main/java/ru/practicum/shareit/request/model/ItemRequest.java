@@ -1,10 +1,7 @@
-package ru.practicum.shareit.item.model;
+package ru.practicum.shareit.request.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import ru.practicum.shareit.user.User;
 
 import java.time.LocalDateTime;
@@ -15,6 +12,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class ItemRequest {
 
 	@Id
@@ -24,10 +22,10 @@ public class ItemRequest {
 	@Column(nullable = false)
 	private String description;
 
+	@Column(nullable = false)
+	private LocalDateTime created;
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "requestor_id", nullable = false)
 	private User requestor;
-
-	@Column(nullable = false)
-	private LocalDateTime created;
 }

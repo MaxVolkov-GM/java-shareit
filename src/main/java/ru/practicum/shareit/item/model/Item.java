@@ -14,6 +14,7 @@ import ru.practicum.shareit.user.User;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Item {
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -31,6 +32,7 @@ public class Item {
 	@JoinColumn(name = "owner_id", nullable = false)
 	private User owner;
 
-	@Transient
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "request_id")
 	private ItemRequest request;
 }

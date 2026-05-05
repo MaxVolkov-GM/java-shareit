@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.comment.repository.CommentRepository;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
@@ -29,13 +31,13 @@ public class ItemServiceImpl implements ItemService {
 	@Override
 	public Item create(Item item, Long userId) {
 		User owner = userRepository.findById(userId)
-				.orElseThrow(() -> new RuntimeException("User not found"));
+				.orElseThrow(() -> new NotFoundException("User not found"));
 
 		item.setOwner(owner);
 
 		if (item.getRequest() != null && item.getRequest().getId() != null) {
 			ItemRequest request = itemRequestRepository.findById(item.getRequest().getId())
-					.orElseThrow(() -> new RuntimeException("Request not found"));
+					.orElseThrow(() -> new NotFoundException("Request not found"));
 			item.setRequest(request);
 		}
 
@@ -45,10 +47,10 @@ public class ItemServiceImpl implements ItemService {
 	@Override
 	public Item update(Long itemId, Item item, Long userId) {
 		Item existing = itemRepository.findById(itemId)
-				.orElseThrow(() -> new RuntimeException("Item not found"));
+				.orElseThrow(() -> new NotFoundException("Item not found"));
 
 		if (!existing.getOwner().getId().equals(userId)) {
-			throw new RuntimeException("Only owner can update item");
+			throw new NotFoundException("Only owner can update item");
 		}
 
 		if (item.getName() != null) {
@@ -69,13 +71,13 @@ public class ItemServiceImpl implements ItemService {
 	@Override
 	public Item getById(Long itemId) {
 		return itemRepository.findById(itemId)
-				.orElseThrow(() -> new RuntimeException("Item not found"));
+				.orElseThrow(() -> new NotFoundException("Item not found"));
 	}
 
 	@Override
 	public Item getById(Long itemId, Long userId) {
 		userRepository.findById(userId)
-				.orElseThrow(() -> new RuntimeException("User not found"));
+				.orElseThrow(() -> new NotFoundException("User not found"));
 
 		return getById(itemId);
 	}
@@ -83,7 +85,7 @@ public class ItemServiceImpl implements ItemService {
 	@Override
 	public List<Item> getAllByUser(Long userId) {
 		userRepository.findById(userId)
-				.orElseThrow(() -> new RuntimeException("User not found"));
+				.orElseThrow(() -> new NotFoundException("User not found"));
 
 		return itemRepository.findByOwnerId(userId);
 	}
@@ -100,10 +102,10 @@ public class ItemServiceImpl implements ItemService {
 	@Override
 	public Comment addComment(Long itemId, Long userId, String text) {
 		Item item = itemRepository.findById(itemId)
-				.orElseThrow(() -> new RuntimeException("Item not found"));
+				.orElseThrow(() -> new NotFoundException("Item not found"));
 
 		User author = userRepository.findById(userId)
-				.orElseThrow(() -> new RuntimeException("User not found"));
+				.orElseThrow(() -> new NotFoundException("User not found"));
 
 		boolean hasCompletedBooking = bookingRepository.existsByItemIdAndBookerIdAndStatusAndEndBefore(
 				itemId,
@@ -113,7 +115,7 @@ public class ItemServiceImpl implements ItemService {
 		);
 
 		if (!hasCompletedBooking) {
-			throw new RuntimeException("Only user with completed booking can comment item");
+			throw new ValidationException("Only user with completed booking can comment item");
 		}
 
 		Comment comment = new Comment();

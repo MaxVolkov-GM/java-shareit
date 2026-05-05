@@ -18,11 +18,12 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class BookingServiceImpl {
+public class BookingServiceImpl implements BookingService {
 	private final BookingRepository bookingRepository;
 	private final ItemRepository itemRepository;
 	private final UserRepository userRepository;
 
+	@Override
 	public Booking create(Long userId, Booking booking) {
 		User booker = userRepository.findById(userId)
 				.orElseThrow(() -> new NotFoundException("User not found"));
@@ -53,6 +54,7 @@ public class BookingServiceImpl {
 		return bookingRepository.save(booking);
 	}
 
+	@Override
 	public Booking approve(Long ownerId, Long bookingId, Boolean approved) {
 		Booking booking = bookingRepository.findById(bookingId)
 				.orElseThrow(() -> new NotFoundException("Booking not found"));
@@ -70,6 +72,7 @@ public class BookingServiceImpl {
 		return bookingRepository.save(booking);
 	}
 
+	@Override
 	public Booking getById(Long userId, Long bookingId) {
 		userRepository.findById(userId)
 				.orElseThrow(() -> new NotFoundException("User not found"));
@@ -87,6 +90,7 @@ public class BookingServiceImpl {
 		return booking;
 	}
 
+	@Override
 	public List<Booking> getUserBookings(Long userId, String state) {
 		userRepository.findById(userId)
 				.orElseThrow(() -> new NotFoundException("User not found"));
@@ -104,6 +108,7 @@ public class BookingServiceImpl {
 		};
 	}
 
+	@Override
 	public List<Booking> getOwnerBookings(Long ownerId, String state) {
 		userRepository.findById(ownerId)
 				.orElseThrow(() -> new NotFoundException("User not found"));

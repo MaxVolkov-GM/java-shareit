@@ -3,6 +3,7 @@ package ru.practicum.shareit.user.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -49,7 +50,7 @@ public class UserServiceImpl implements UserService {
 	@Transactional(readOnly = true)
 	public User getById(Long userId) {
 		return userRepository.findById(userId)
-				.orElseThrow(() -> new RuntimeException("User not found"));
+				.orElseThrow(() -> new NotFoundException("User not found"));
 	}
 
 	@Override

@@ -2,6 +2,7 @@ package ru.practicum.shareit.request.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.model.ItemRequest;
 import ru.practicum.shareit.item.repository.ItemRepository;
@@ -26,7 +27,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 	@Override
 	public ItemRequestDto create(Long userId, ItemRequestDto dto) {
 		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new RuntimeException("User not found"));
+				.orElseThrow(() -> new NotFoundException("User not found"));
 
 		ItemRequest request = ItemRequestMapper.toEntity(dto, user);
 		ItemRequest saved = requestRepository.save(request);
@@ -69,7 +70,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 		checkUser(userId);
 
 		ItemRequest request = requestRepository.findById(requestId)
-				.orElseThrow(() -> new RuntimeException("Request not found"));
+				.orElseThrow(() -> new NotFoundException("Request not found"));
 
 		List<Item> items = itemRepository.findByRequestId(requestId);
 
@@ -78,7 +79,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
 	private void checkUser(Long userId) {
 		userRepository.findById(userId)
-				.orElseThrow(() -> new RuntimeException("User not found"));
+				.orElseThrow(() -> new NotFoundException("User not found"));
 	}
 
 	private Map<Long, List<Item>> getItemsMap(List<ItemRequest> requests) {

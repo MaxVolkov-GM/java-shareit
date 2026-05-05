@@ -2,11 +2,14 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.comment.repository.CommentRepository;
+import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.model.ItemRequest;
@@ -17,6 +20,8 @@ import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -83,11 +88,75 @@ public class ItemServiceImpl implements ItemService {
 	}
 
 	@Override
+	public ItemDto getDtoById(Long itemId, Long userId) {
+		Item item = getById(itemId, userId);
+		List<Comment> comments = commentRepository.findByItemIdOrderByCreatedAsc(itemId);
+
+		Booking lastBooking = null;
+		Booking nextBooking = null;
+
+		if (item.getOwner().getId().equals(userId)) {
+			LocalDateTime now = LocalDateTime.now();
+
+			lastBooking = bookingRepository.findFirstByItemIdAndStatusAndEndBeforeOrderByStartDesc(
+					itemId,
+					BookingStatus.APPROVED,
+					now
+			);
+
+			nextBooking = bookingRepository.findFirstByItemIdAndStatusAndStartAfterOrderByStartAsc(
+					itemId,
+					BookingStatus.APPROVED,
+					now
+			);
+		}
+
+		return ItemMapper.toDto(item, lastBooking, nextBooking, comments);
+	}
+
+	@Override
 	public List<Item> getAllByUser(Long userId) {
 		userRepository.findById(userId)
 				.orElseThrow(() -> new NotFoundException("User not found"));
 
 		return itemRepository.findByOwnerId(userId);
+	}
+
+	@Override
+	public List<ItemDto> getAllDtoByUser(Long userId) {
+		List<Item> items = getAllByUser(userId);
+		List<Long> itemIds = items.stream()
+				.map(Item::getId)
+				.toList();
+
+		Map<Long, List<Comment>> commentsByItemId = commentRepository.findByItemIdInOrderByCreatedAsc(itemIds)
+				.stream()
+				.collect(Collectors.groupingBy(comment -> comment.getItem().getId()));
+
+		LocalDateTime now = LocalDateTime.now();
+
+		return items.stream()
+				.map(item -> {
+					Booking lastBooking = bookingRepository.findFirstByItemIdAndStatusAndEndBeforeOrderByStartDesc(
+							item.getId(),
+							BookingStatus.APPROVED,
+							now
+					);
+
+					Booking nextBooking = bookingRepository.findFirstByItemIdAndStatusAndStartAfterOrderByStartAsc(
+							item.getId(),
+							BookingStatus.APPROVED,
+							now
+					);
+
+					return ItemMapper.toDto(
+							item,
+							lastBooking,
+							nextBooking,
+							commentsByItemId.getOrDefault(item.getId(), List.of())
+					);
+				})
+				.toList();
 	}
 
 	@Override

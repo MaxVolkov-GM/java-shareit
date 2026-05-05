@@ -8,39 +8,31 @@ import ru.practicum.shareit.request.service.ItemRequestService;
 import java.util.List;
 
 @RestController
-@RequestMapping(path = "/requests")
+@RequestMapping("/requests")
 @RequiredArgsConstructor
 public class ItemRequestController {
 
 	private final ItemRequestService itemRequestService;
 
 	@PostMapping
-	public ItemRequestDto create(
-			@RequestHeader("X-Sharer-User-Id") Long userId,
-			@RequestBody ItemRequestDto itemRequestDto
-	) {
+	public ItemRequestDto create(@RequestHeader("X-Sharer-User-Id") Long userId,
+	                             @RequestBody ItemRequestDto itemRequestDto) {
 		return itemRequestService.create(userId, itemRequestDto);
 	}
 
 	@GetMapping
-	public List<ItemRequestDto> getUserRequests(
-			@RequestHeader("X-Sharer-User-Id") Long userId
-	) {
+	public List<ItemRequestDto> getUserRequests(@RequestHeader("X-Sharer-User-Id") Long userId) {
 		return itemRequestService.getUserRequests(userId);
 	}
 
 	@GetMapping("/all")
-	public List<ItemRequestDto> getAllRequests(
-			@RequestHeader("X-Sharer-User-Id") Long userId
-	) {
+	public List<ItemRequestDto> getAllRequests(@RequestHeader("X-Sharer-User-Id") Long userId) {
 		return itemRequestService.getAllRequests(userId);
 	}
 
 	@GetMapping("/{requestId}")
-	public ItemRequestDto getById(
-			@RequestHeader("X-Sharer-User-Id") Long userId,
-			@PathVariable Long requestId
-	) {
+	public ItemRequestDto getById(@RequestHeader("X-Sharer-User-Id") Long userId,
+	                              @PathVariable Long requestId) {
 		return itemRequestService.getById(userId, requestId);
 	}
 }

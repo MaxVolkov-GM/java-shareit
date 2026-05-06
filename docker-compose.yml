@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:16.1
+    container_name: postgres
+    ports:
+      - "6541:5432"
+    environment:
+      POSTGRES_DB: shareit
+      POSTGRES_USER: shareit
+      POSTGRES_PASSWORD: shareit
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U shareit -d shareit" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  server:
+    build: ./server
+    container_name: shareit-server
+    network_mode: host
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:6541/shareit
+      SPRING_DATASOURCE_USERNAME: shareit
+      SPRING_DATASOURCE_PASSWORD: shareit
+
+  gateway:
+    build: ./gateway
+    container_name: shareit-gateway
+    network_mode: host
+    depends_on:
+      - server
+    environment:
+      SHAREIT_SERVER_URL: http://localhost:9090

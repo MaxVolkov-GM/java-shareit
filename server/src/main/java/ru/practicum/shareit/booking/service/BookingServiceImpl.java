@@ -1,6 +1,7 @@
 package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.Booking;
@@ -95,41 +96,54 @@ public class BookingServiceImpl implements BookingService {
 	}
 
 	@Override
-	public List<Booking> getUserBookings(Long userId, String state) {
+	public List<Booking> getUserBookings(Long userId, String state, Integer from, Integer size) {
 		userRepository.findById(userId)
 				.orElseThrow(() -> new NotFoundException("User not found"));
 
 		LocalDateTime now = LocalDateTime.now();
+		PageRequest pageRequest = createPageRequest(from, size);
 
 		return switch (normalizeState(state)) {
-			case "CURRENT" -> bookingRepository.findByBookerIdAndStartBeforeAndEndAfter(userId, now, now, START_DESC);
-			case "PAST" -> bookingRepository.findByBookerIdAndEndBefore(userId, now, START_DESC);
-			case "FUTURE" -> bookingRepository.findByBookerIdAndStartAfter(userId, now, START_DESC);
-			case "WAITING" -> bookingRepository.findByBookerIdAndStatus(userId, BookingStatus.WAITING, START_DESC);
-			case "REJECTED" -> bookingRepository.findByBookerIdAndStatus(userId, BookingStatus.REJECTED, START_DESC);
-			case "ALL" -> bookingRepository.findByBookerId(userId, START_DESC);
+			case "CURRENT" -> bookingRepository.findByBookerIdAndStartBeforeAndEndAfter(userId, now, now, pageRequest);
+			case "PAST" -> bookingRepository.findByBookerIdAndEndBefore(userId, now, pageRequest);
+			case "FUTURE" -> bookingRepository.findByBookerIdAndStartAfter(userId, now, pageRequest);
+			case "WAITING" -> bookingRepository.findByBookerIdAndStatus(userId, BookingStatus.WAITING, pageRequest);
+			case "REJECTED" -> bookingRepository.findByBookerIdAndStatus(userId, BookingStatus.REJECTED, pageRequest);
+			case "ALL" -> bookingRepository.findByBookerId(userId, pageRequest);
 			default -> throw new ValidationException("Unknown state: " + state);
 		};
 	}
 
 	@Override
-	public List<Booking> getOwnerBookings(Long ownerId, String state) {
+	public List<Booking> getOwnerBookings(Long ownerId, String state, Integer from, Integer size) {
 		userRepository.findById(ownerId)
 				.orElseThrow(() -> new NotFoundException("User not found"));
 
 		LocalDateTime now = LocalDateTime.now();
+		PageRequest pageRequest = createPageRequest(from, size);
 
 		return switch (normalizeState(state)) {
 			case "CURRENT" -> bookingRepository.findByItemOwnerIdAndStartBeforeAndEndAfter(ownerId, now, now,
-					START_DESC);
-			case "PAST" -> bookingRepository.findByItemOwnerIdAndEndBefore(ownerId, now, START_DESC);
-			case "FUTURE" -> bookingRepository.findByItemOwnerIdAndStartAfter(ownerId, now, START_DESC);
-			case "WAITING" -> bookingRepository.findByItemOwnerIdAndStatus(ownerId, BookingStatus.WAITING, START_DESC);
+					pageRequest);
+			case "PAST" -> bookingRepository.findByItemOwnerIdAndEndBefore(ownerId, now, pageRequest);
+			case "FUTURE" -> bookingRepository.findByItemOwnerIdAndStartAfter(ownerId, now, pageRequest);
+			case "WAITING" -> bookingRepository.findByItemOwnerIdAndStatus(ownerId, BookingStatus.WAITING, pageRequest);
 			case "REJECTED" -> bookingRepository.findByItemOwnerIdAndStatus(ownerId, BookingStatus.REJECTED,
-					START_DESC);
-			case "ALL" -> bookingRepository.findByItemOwnerId(ownerId, START_DESC);
+					pageRequest);
+			case "ALL" -> bookingRepository.findByItemOwnerId(ownerId, pageRequest);
 			default -> throw new ValidationException("Unknown state: " + state);
 		};
+	}
+
+	private PageRequest createPageRequest(Integer from, Integer size) {
+		int pageFrom = from == null ? 0 : from;
+		int pageSize = size == null ? 10 : size;
+
+		if (pageFrom < 0 || pageSize <= 0) {
+			throw new ValidationException("Invalid pagination parameters");
+		}
+
+		return PageRequest.of(pageFrom / pageSize, pageSize, START_DESC);
 	}
 
 	private String normalizeState(String state) {

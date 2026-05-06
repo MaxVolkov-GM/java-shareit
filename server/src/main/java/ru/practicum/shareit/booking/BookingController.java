@@ -42,16 +42,20 @@ public class BookingController {
 
 	@GetMapping
 	public List<BookingDto> getUserBookings(@RequestHeader("X-Sharer-User-Id") Long userId,
-	                                        @RequestParam(defaultValue = "ALL") String state) {
-		return bookingService.getUserBookings(userId, state).stream()
+	                                        @RequestParam(defaultValue = "ALL") String state,
+	                                        @RequestParam(defaultValue = "0") Integer from,
+	                                        @RequestParam(defaultValue = "10") Integer size) {
+		return bookingService.getUserBookings(userId, state, from, size).stream()
 				.map(BookingMapper::toDto)
 				.toList();
 	}
 
 	@GetMapping("/owner")
 	public List<BookingDto> getOwnerBookings(@RequestHeader("X-Sharer-User-Id") Long userId,
-	                                         @RequestParam(defaultValue = "ALL") String state) {
-		return bookingService.getOwnerBookings(userId, state).stream()
+	                                         @RequestParam(defaultValue = "ALL") String state,
+	                                         @RequestParam(defaultValue = "0") Integer from,
+	                                         @RequestParam(defaultValue = "10") Integer size) {
+		return bookingService.getOwnerBookings(userId, state, from, size).stream()
 				.map(BookingMapper::toDto)
 				.toList();
 	}

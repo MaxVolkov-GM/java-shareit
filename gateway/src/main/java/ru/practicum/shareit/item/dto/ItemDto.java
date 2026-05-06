@@ -16,15 +16,14 @@ import ru.practicum.shareit.validation.Update;
 public class ItemDto {
 
 	@Null(groups = Create.class)
-	@NotNull(groups = Update.class)
 	private Long id;
 
 	@NotBlank(groups = Create.class)
-	@Size(max = 255)
+	@Size(max = 255, groups = {Create.class, Update.class})
 	private String name;
 
 	@NotBlank(groups = Create.class)
-	@Size(max = 512)
+	@Size(max = 512, groups = {Create.class, Update.class})
 	private String description;
 
 	@NotNull(groups = Create.class)

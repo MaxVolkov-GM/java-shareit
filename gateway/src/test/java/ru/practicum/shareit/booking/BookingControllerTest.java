@@ -5,9 +5,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.practicum.shareit.booking.dto.BookingDto;
 
 import java.time.LocalDateTime;
 
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -41,6 +44,9 @@ class BookingControllerTest {
 						.contentType(APPLICATION_JSON)
 						.content(json))
 				.andExpect(status().isOk());
+
+		verify(bookingClient).create(1L, new BookingDto(null, LocalDateTime.parse(start),
+				LocalDateTime.parse(end), 1L));
 	}
 
 	@Test
@@ -61,6 +67,8 @@ class BookingControllerTest {
 						.contentType(APPLICATION_JSON)
 						.content(json))
 				.andExpect(status().isBadRequest());
+
+		verifyNoInteractions(bookingClient);
 	}
 
 	@Test
@@ -81,6 +89,8 @@ class BookingControllerTest {
 						.contentType(APPLICATION_JSON)
 						.content(json))
 				.andExpect(status().isBadRequest());
+
+		verifyNoInteractions(bookingClient);
 	}
 
 	@Test
@@ -100,6 +110,8 @@ class BookingControllerTest {
 						.contentType(APPLICATION_JSON)
 						.content(json))
 				.andExpect(status().isBadRequest());
+
+		verifyNoInteractions(bookingClient);
 	}
 
 	@Test
@@ -108,6 +120,8 @@ class BookingControllerTest {
 						.header("X-Sharer-User-Id", 1L)
 						.param("approved", "true"))
 				.andExpect(status().isOk());
+
+		verify(bookingClient).approve(1L, 1L, true);
 	}
 
 	@Test
@@ -115,6 +129,8 @@ class BookingControllerTest {
 		mockMvc.perform(get("/bookings/1")
 						.header("X-Sharer-User-Id", 1L))
 				.andExpect(status().isOk());
+
+		verify(bookingClient).getById(1L, 1L);
 	}
 
 	@Test
@@ -125,6 +141,8 @@ class BookingControllerTest {
 						.param("from", "0")
 						.param("size", "10"))
 				.andExpect(status().isOk());
+
+		verify(bookingClient).getUserBookings(1L, "ALL", 0, 10);
 	}
 
 	@Test
@@ -135,5 +153,55 @@ class BookingControllerTest {
 						.param("from", "0")
 						.param("size", "10"))
 				.andExpect(status().isOk());
+
+		verify(bookingClient).getOwnerBookings(1L, "ALL", 0, 10);
+	}
+
+	@Test
+	void getUserBookings_whenFromIsNegative_thenStatusBadRequest() throws Exception {
+		mockMvc.perform(get("/bookings")
+						.header("X-Sharer-User-Id", 1L)
+						.param("state", "ALL")
+						.param("from", "-1")
+						.param("size", "10"))
+				.andExpect(status().isBadRequest());
+
+		verifyNoInteractions(bookingClient);
+	}
+
+	@Test
+	void getUserBookings_whenSizeIsZero_thenStatusBadRequest() throws Exception {
+		mockMvc.perform(get("/bookings")
+						.header("X-Sharer-User-Id", 1L)
+						.param("state", "ALL")
+						.param("from", "0")
+						.param("size", "0"))
+				.andExpect(status().isBadRequest());
+
+		verifyNoInteractions(bookingClient);
+	}
+
+	@Test
+	void getOwnerBookings_whenFromIsNegative_thenStatusBadRequest() throws Exception {
+		mockMvc.perform(get("/bookings/owner")
+						.header("X-Sharer-User-Id", 1L)
+						.param("state", "ALL")
+						.param("from", "-1")
+						.param("size", "10"))
+				.andExpect(status().isBadRequest());
+
+		verifyNoInteractions(bookingClient);
+	}
+
+	@Test
+	void getOwnerBookings_whenSizeIsZero_thenStatusBadRequest() throws Exception {
+		mockMvc.perform(get("/bookings/owner")
+						.header("X-Sharer-User-Id", 1L)
+						.param("state", "ALL")
+						.param("from", "0")
+						.param("size", "0"))
+				.andExpect(status().isBadRequest());
+
+		verifyNoInteractions(bookingClient);
 	}
 }

@@ -92,7 +92,29 @@ class BookingServiceImplTest {
 
 		Booking created = bookingService.create(booker.getId(), booking);
 
-		List<Booking> bookings = bookingService.getUserBookings(booker.getId(), "ALL");
+		List<Booking> bookings = bookingService.getUserBookings(booker.getId(), "ALL", 0, 10);
+
+		assertThat(bookings).extracting(Booking::getId).contains(created.getId());
+	}
+
+	@Test
+	void getOwnerBookings() {
+		User owner = userService.create(new User(null, "Owner", "booking-owner-owner-list@mail.com"));
+		User booker = userService.create(new User(null, "Booker", "booking-booker-owner-list@mail.com"));
+
+		Item item = itemService.create(
+				new Item(null, "Лестница", "Описание", true, owner, null),
+				owner.getId()
+		);
+
+		Booking booking = new Booking();
+		booking.setItem(item);
+		booking.setStart(LocalDateTime.now().plusDays(1));
+		booking.setEnd(LocalDateTime.now().plusDays(2));
+
+		Booking created = bookingService.create(booker.getId(), booking);
+
+		List<Booking> bookings = bookingService.getOwnerBookings(owner.getId(), "ALL", 0, 10);
 
 		assertThat(bookings).extracting(Booking::getId).contains(created.getId());
 	}

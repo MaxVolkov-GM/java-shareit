@@ -35,11 +35,19 @@ public class BookingClient extends BaseClient {
 		return get(API_PREFIX + "/" + bookingId, userId);
 	}
 
-	public ResponseEntity<Object> getUserBookings(Long userId, String state) {
-		return get(API_PREFIX + "?state={state}", userId, Map.of("state", state));
+	public ResponseEntity<Object> getUserBookings(Long userId, String state, Integer from, Integer size) {
+		return get(
+				API_PREFIX + "?state={state}&from={from}&size={size}",
+				userId,
+				Map.of("state", state, "from", from, "size", size)
+		);
 	}
 
-	public ResponseEntity<Object> getOwnerBookings(Long userId, String state) {
-		return get(API_PREFIX + "/owner?state={state}", userId, Map.of("state", state));
+	public ResponseEntity<Object> getOwnerBookings(Long userId, String state, Integer from, Integer size) {
+		return get(
+				API_PREFIX + "/owner?state={state}&from={from}&size={size}",
+				userId,
+				Map.of("state", state, "from", from, "size", size)
+		);
 	}
 }

@@ -9,6 +9,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserUpdateDto;
 
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -36,6 +38,8 @@ class UserControllerTest {
 						.contentType(APPLICATION_JSON)
 						.content(objectMapper.writeValueAsString(userDto)))
 				.andExpect(status().isOk());
+
+		verify(userClient).create(userDto);
 	}
 
 	@Test
@@ -46,6 +50,8 @@ class UserControllerTest {
 						.contentType(APPLICATION_JSON)
 						.content(objectMapper.writeValueAsString(userDto)))
 				.andExpect(status().isBadRequest());
+
+		verifyNoInteractions(userClient);
 	}
 
 	@Test
@@ -56,18 +62,48 @@ class UserControllerTest {
 						.contentType(APPLICATION_JSON)
 						.content(objectMapper.writeValueAsString(userDto)))
 				.andExpect(status().isBadRequest());
+
+		verifyNoInteractions(userClient);
+	}
+
+	@Test
+	void createUser_whenNameTooLong_thenStatusBadRequest() throws Exception {
+		UserDto userDto = new UserDto(null, "a".repeat(256), "user@mail.com");
+
+		mockMvc.perform(post("/users")
+						.contentType(APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(userDto)))
+				.andExpect(status().isBadRequest());
+
+		verifyNoInteractions(userClient);
+	}
+
+	@Test
+	void createUser_whenEmailTooLong_thenStatusBadRequest() throws Exception {
+		UserDto userDto = new UserDto(null, "User", "a".repeat(245) + "@mail.com");
+
+		mockMvc.perform(post("/users")
+						.contentType(APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(userDto)))
+				.andExpect(status().isBadRequest());
+
+		verifyNoInteractions(userClient);
 	}
 
 	@Test
 	void getAllUsers_thenStatusOk() throws Exception {
 		mockMvc.perform(get("/users"))
 				.andExpect(status().isOk());
+
+		verify(userClient).getAll();
 	}
 
 	@Test
 	void getUserById_thenStatusOk() throws Exception {
 		mockMvc.perform(get("/users/1"))
 				.andExpect(status().isOk());
+
+		verify(userClient).getById(1L);
 	}
 
 	@Test
@@ -78,6 +114,8 @@ class UserControllerTest {
 						.contentType(APPLICATION_JSON)
 						.content(objectMapper.writeValueAsString(userDto)))
 				.andExpect(status().isOk());
+
+		verify(userClient).update(1L, userDto);
 	}
 
 	@Test
@@ -88,11 +126,39 @@ class UserControllerTest {
 						.contentType(APPLICATION_JSON)
 						.content(objectMapper.writeValueAsString(userDto)))
 				.andExpect(status().isBadRequest());
+
+		verifyNoInteractions(userClient);
+	}
+
+	@Test
+	void updateUser_whenNameTooLong_thenStatusBadRequest() throws Exception {
+		UserUpdateDto userDto = new UserUpdateDto(null, "a".repeat(256), "new@mail.com");
+
+		mockMvc.perform(patch("/users/1")
+						.contentType(APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(userDto)))
+				.andExpect(status().isBadRequest());
+
+		verifyNoInteractions(userClient);
+	}
+
+	@Test
+	void updateUser_whenEmailTooLong_thenStatusBadRequest() throws Exception {
+		UserUpdateDto userDto = new UserUpdateDto(null, "New Name", "a".repeat(245) + "@mail.com");
+
+		mockMvc.perform(patch("/users/1")
+						.contentType(APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(userDto)))
+				.andExpect(status().isBadRequest());
+
+		verifyNoInteractions(userClient);
 	}
 
 	@Test
 	void deleteUser_thenStatusOk() throws Exception {
 		mockMvc.perform(delete("/users/1"))
 				.andExpect(status().isOk());
+
+		verify(userClient).delete(1L);
 	}
 }

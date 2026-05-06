@@ -1,22 +1,24 @@
 package ru.practicum.shareit.item.mapper;
 
+import lombok.experimental.UtilityClass;
 import ru.practicum.shareit.booking.Booking;
-import ru.practicum.shareit.item.model.Comment;
+import ru.practicum.shareit.item.comment.dto.CommentDto;
 import ru.practicum.shareit.item.dto.BookingShortDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.model.ItemRequest;
-import ru.practicum.shareit.item.comment.dto.CommentDto;
 
 import java.util.List;
 
+@UtilityClass
 public class ItemMapper {
 
-	public static ItemDto toDto(Item item) {
+	public ItemDto toDto(Item item) {
 		return toDto(item, null, null, List.of());
 	}
 
-	public static ItemDto toDto(Item item, Booking lastBooking, Booking nextBooking, List<Comment> comments) {
+	public ItemDto toDto(Item item, Booking lastBooking, Booking nextBooking, List<Comment> comments) {
 		return new ItemDto(
 				item.getId(),
 				item.getName(),
@@ -29,8 +31,9 @@ public class ItemMapper {
 		);
 	}
 
-	public static Item toItem(ItemDto itemDto) {
+	public Item toItem(ItemDto itemDto) {
 		Item item = new Item();
+
 		item.setId(itemDto.getId());
 		item.setName(itemDto.getName());
 		item.setDescription(itemDto.getDescription());
@@ -45,7 +48,7 @@ public class ItemMapper {
 		return item;
 	}
 
-	public static CommentDto toCommentDto(Comment comment) {
+	public CommentDto toCommentDto(Comment comment) {
 		return new CommentDto(
 				comment.getId(),
 				comment.getText(),
@@ -54,10 +57,11 @@ public class ItemMapper {
 		);
 	}
 
-	private static BookingShortDto toBookingShortDto(Booking booking) {
+	private BookingShortDto toBookingShortDto(Booking booking) {
 		if (booking == null) {
 			return null;
 		}
+
 		return new BookingShortDto(booking.getId(), booking.getBooker().getId());
 	}
 }

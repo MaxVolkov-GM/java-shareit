@@ -1,6 +1,7 @@
 package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
@@ -19,6 +20,9 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
+
+	private static final Sort START_DESC = Sort.by(Sort.Direction.DESC, "start");
+
 	private final BookingRepository bookingRepository;
 	private final ItemRepository itemRepository;
 	private final UserRepository userRepository;
@@ -98,12 +102,12 @@ public class BookingServiceImpl implements BookingService {
 		LocalDateTime now = LocalDateTime.now();
 
 		return switch (normalizeState(state)) {
-			case "CURRENT" -> bookingRepository.findByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId, now, now);
-			case "PAST" -> bookingRepository.findByBookerIdAndEndBeforeOrderByStartDesc(userId, now);
-			case "FUTURE" -> bookingRepository.findByBookerIdAndStartAfterOrderByStartDesc(userId, now);
-			case "WAITING" -> bookingRepository.findByBookerIdAndStatusOrderByStartDesc(userId, BookingStatus.WAITING);
-			case "REJECTED" -> bookingRepository.findByBookerIdAndStatusOrderByStartDesc(userId, BookingStatus.REJECTED);
-			case "ALL" -> bookingRepository.findByBookerIdOrderByStartDesc(userId);
+			case "CURRENT" -> bookingRepository.findByBookerIdAndStartBeforeAndEndAfter(userId, now, now, START_DESC);
+			case "PAST" -> bookingRepository.findByBookerIdAndEndBefore(userId, now, START_DESC);
+			case "FUTURE" -> bookingRepository.findByBookerIdAndStartAfter(userId, now, START_DESC);
+			case "WAITING" -> bookingRepository.findByBookerIdAndStatus(userId, BookingStatus.WAITING, START_DESC);
+			case "REJECTED" -> bookingRepository.findByBookerIdAndStatus(userId, BookingStatus.REJECTED, START_DESC);
+			case "ALL" -> bookingRepository.findByBookerId(userId, START_DESC);
 			default -> throw new ValidationException("Unknown state: " + state);
 		};
 	}
@@ -116,12 +120,14 @@ public class BookingServiceImpl implements BookingService {
 		LocalDateTime now = LocalDateTime.now();
 
 		return switch (normalizeState(state)) {
-			case "CURRENT" -> bookingRepository.findByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(ownerId, now, now);
-			case "PAST" -> bookingRepository.findByItemOwnerIdAndEndBeforeOrderByStartDesc(ownerId, now);
-			case "FUTURE" -> bookingRepository.findByItemOwnerIdAndStartAfterOrderByStartDesc(ownerId, now);
-			case "WAITING" -> bookingRepository.findByItemOwnerIdAndStatusOrderByStartDesc(ownerId, BookingStatus.WAITING);
-			case "REJECTED" -> bookingRepository.findByItemOwnerIdAndStatusOrderByStartDesc(ownerId, BookingStatus.REJECTED);
-			case "ALL" -> bookingRepository.findByItemOwnerIdOrderByStartDesc(ownerId);
+			case "CURRENT" -> bookingRepository.findByItemOwnerIdAndStartBeforeAndEndAfter(ownerId, now, now,
+					START_DESC);
+			case "PAST" -> bookingRepository.findByItemOwnerIdAndEndBefore(ownerId, now, START_DESC);
+			case "FUTURE" -> bookingRepository.findByItemOwnerIdAndStartAfter(ownerId, now, START_DESC);
+			case "WAITING" -> bookingRepository.findByItemOwnerIdAndStatus(ownerId, BookingStatus.WAITING, START_DESC);
+			case "REJECTED" -> bookingRepository.findByItemOwnerIdAndStatus(ownerId, BookingStatus.REJECTED,
+					START_DESC);
+			case "ALL" -> bookingRepository.findByItemOwnerId(ownerId, START_DESC);
 			default -> throw new ValidationException("Unknown state: " + state);
 		};
 	}

@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
@@ -26,6 +27,9 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
+
+	private static final Sort START_DESC = Sort.by(Sort.Direction.DESC, "start");
+	private static final Sort START_ASC = Sort.by(Sort.Direction.ASC, "start");
 
 	private final ItemRepository itemRepository;
 	private final UserRepository userRepository;
@@ -98,16 +102,18 @@ public class ItemServiceImpl implements ItemService {
 		if (item.getOwner().getId().equals(userId)) {
 			LocalDateTime now = LocalDateTime.now();
 
-			lastBooking = bookingRepository.findFirstByItemIdAndStatusAndEndBeforeOrderByStartDesc(
+			lastBooking = bookingRepository.findFirstByItemIdAndStatusAndEndBefore(
 					itemId,
 					BookingStatus.APPROVED,
-					now
+					now,
+					START_DESC
 			);
 
-			nextBooking = bookingRepository.findFirstByItemIdAndStatusAndStartAfterOrderByStartAsc(
+			nextBooking = bookingRepository.findFirstByItemIdAndStatusAndStartAfter(
 					itemId,
 					BookingStatus.APPROVED,
-					now
+					now,
+					START_ASC
 			);
 		}
 
@@ -137,16 +143,18 @@ public class ItemServiceImpl implements ItemService {
 
 		return items.stream()
 				.map(item -> {
-					Booking lastBooking = bookingRepository.findFirstByItemIdAndStatusAndEndBeforeOrderByStartDesc(
+					Booking lastBooking = bookingRepository.findFirstByItemIdAndStatusAndEndBefore(
 							item.getId(),
 							BookingStatus.APPROVED,
-							now
+							now,
+							START_DESC
 					);
 
-					Booking nextBooking = bookingRepository.findFirstByItemIdAndStatusAndStartAfterOrderByStartAsc(
+					Booking nextBooking = bookingRepository.findFirstByItemIdAndStatusAndStartAfter(
 							item.getId(),
 							BookingStatus.APPROVED,
-							now
+							now,
+							START_ASC
 					);
 
 					return ItemMapper.toDto(

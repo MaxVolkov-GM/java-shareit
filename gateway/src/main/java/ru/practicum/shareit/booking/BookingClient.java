@@ -1,4 +1,3 @@
-
 package ru.practicum.shareit.booking;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +22,13 @@ public class BookingClient extends BaseClient {
 	}
 
 	public ResponseEntity<Object> approve(Long userId, Long bookingId, Boolean approved) {
-		return makeAndSendRequest(HttpMethod.PATCH, API_PREFIX + "/" + bookingId + "?approved={approved}", userId, Map.of("approved", approved), null);
+		return makeAndSendRequest(
+				HttpMethod.PATCH,
+				API_PREFIX + "/" + bookingId + "?approved={approved}",
+				userId,
+				Map.of("approved", approved),
+				null
+		);
 	}
 
 	public ResponseEntity<Object> getById(Long userId, Long bookingId) {

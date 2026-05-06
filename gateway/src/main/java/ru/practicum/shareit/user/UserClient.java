@@ -1,13 +1,14 @@
 package ru.practicum.shareit.user;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import ru.practicum.shareit.client.BaseClient;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserUpdateDto;
 
-@Service
+@Component
 public class UserClient extends BaseClient {
 	private static final String API_PREFIX = "/users";
 
@@ -32,6 +33,6 @@ public class UserClient extends BaseClient {
 	}
 
 	public ResponseEntity<Object> delete(Long userId) {
-		return delete(API_PREFIX + "/" + userId);
+		return makeAndSendRequest(HttpMethod.DELETE, API_PREFIX + "/" + userId, null, null, null);
 	}
 }

@@ -10,8 +10,6 @@ import ru.practicum.shareit.exception.ForbiddenException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
 
-import java.util.Map;
-
 @RestControllerAdvice
 public class ErrorHandler {
 
@@ -20,8 +18,8 @@ public class ErrorHandler {
 			ValidationException.class
 	})
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
-	public Map<String, String> handleBadRequest(RuntimeException e) {
-		return Map.of("error", e.getMessage());
+	public ErrorResponse handleBadRequest(RuntimeException e) {
+		return new ErrorResponse(e.getMessage());
 	}
 
 	@ExceptionHandler({
@@ -30,19 +28,19 @@ public class ErrorHandler {
 			DataIntegrityViolationException.class
 	})
 	@ResponseStatus(HttpStatus.CONFLICT)
-	public Map<String, String> handleConflict(RuntimeException e) {
-		return Map.of("error", e.getMessage());
+	public ErrorResponse handleConflict(RuntimeException e) {
+		return new ErrorResponse(e.getMessage());
 	}
 
 	@ExceptionHandler(NotFoundException.class)
 	@ResponseStatus(HttpStatus.NOT_FOUND)
-	public Map<String, String> handleNotFound(RuntimeException e) {
-		return Map.of("error", e.getMessage());
+	public ErrorResponse handleNotFound(RuntimeException e) {
+		return new ErrorResponse(e.getMessage());
 	}
 
 	@ExceptionHandler(ForbiddenException.class)
 	@ResponseStatus(HttpStatus.FORBIDDEN)
-	public Map<String, String> handleForbidden(RuntimeException e) {
-		return Map.of("error", e.getMessage());
+	public ErrorResponse handleForbidden(RuntimeException e) {
+		return new ErrorResponse(e.getMessage());
 	}
 }
